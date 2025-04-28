@@ -1,0 +1,30 @@
+import 'package:flutter/material.dart';
+import 'package:lumo/widget/book_cover_card.dart';
+import '../model/book.dart';
+
+class HorizontalBookList extends StatelessWidget {
+  final List<Book> books;
+  final VoidCallback onTap;
+
+  const HorizontalBookList({
+    super.key,
+    required this.books,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 200,
+      child: ListView.builder(
+        padding: EdgeInsets.only(left: 30),
+        scrollDirection: Axis.horizontal,
+        itemCount: books.length,
+        itemBuilder: (_, index) {
+          final book = books[index];
+          return BookCoverCard(bookCover: book.coverUrl, onTap: onTap);
+        },
+      ),
+    );
+  }
+}
