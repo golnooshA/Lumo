@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:lumo/widget/add_to_cart_button.dart';
-
 import '../design/design_config.dart';
+import '../model/book.dart';
+import 'description_page.dart';
 
 class BookDetailPage extends StatelessWidget {
-  const BookDetailPage({super.key});
+
+  final Book book;
+  const BookDetailPage({super.key, required this.book});
 
   @override
   Widget build(BuildContext context) {
+    double discountPrice = book.price * (1 - book.price / 100).roundToDouble();
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -37,7 +42,7 @@ class BookDetailPage extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    'https://edit.org/images/cat/book-covers-big-2019101610.jpg',
+                    book.coverUrl,
                     height: 220,
                   ),
                 ),
@@ -52,8 +57,8 @@ class BookDetailPage extends StatelessWidget {
               // color: Colors.yellow,
               width: double.infinity,
               alignment: Alignment.centerLeft,
-              child: const Text(
-                'The Last Murder at the End of the WorldThe Last Murder at the End of the WorldThe Last Murder at the End of the World',
+              child:  Text(
+                book.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -65,14 +70,14 @@ class BookDetailPage extends StatelessWidget {
             // Rating + Icons
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children:  [
                 Icon(Icons.star, color: Colors.amber, size: 20),
                 Icon(Icons.star, color: Colors.amber, size: 20),
                 Icon(Icons.star, color: Colors.amber, size: 20),
                 Icon(Icons.star_border, color: Colors.amber, size: 20),
                 Icon(Icons.star_border, color: Colors.amber, size: 20),
                 SizedBox(width: 8),
-                Text('(26)', style: TextStyle(color: Colors.grey)),
+                Text(book.rating.toString(), style: TextStyle(color: Colors.grey)),
                 Spacer(),
                 Icon(Icons.favorite_border),
                 SizedBox(width: 16),
@@ -84,29 +89,42 @@ class BookDetailPage extends StatelessWidget {
             // Add to cart and price
             CartADButton
               (title: 'Add to cart',
-                price: '24.50',
-                discountPrice: '11.99',
+                price: book.price.toString(),
+                discountPrice: discountPrice.toString(),
             cardColor: DesignConfig.addCart),
 
             const SizedBox(height: 24),
 
             // Description
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Description',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesignConfig.textSize),
+            InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DescriptionPage(
+                    description: book.description,
+                  ),
                 ),
-                Text('more >', style: TextStyle(color: Colors.orange)),
-              ],
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Description',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: DesignConfig.textSize)),
+                  Text('more >', style: TextStyle(color: Colors.orange)),
+                ],
+              ),
             ),
+
             const SizedBox(height: 8),
-            const Text(
-              "A mind-bending, genre-blending, boy-that-ending mystery unlike any I’ve ever read’ A. J. FINN "
-              "‘I loved it’ C. J. TUDOR ‘An absolute blast’ BENJAMIN ...",
-              style: TextStyle(color: Colors.black87),
+            Text(
+              book.description,
+              maxLines: 5,                         // ▶︎ only 5 lines
+              overflow: TextOverflow.ellipsis,     // ▶︎ fade with “…”
+              style: const TextStyle(color: Colors.black87),
             ),
+
             const SizedBox(height: 20),
 
             // Details
@@ -118,27 +136,27 @@ class BookDetailPage extends StatelessWidget {
               ],
             ),
             const Divider(height: 20),
-            const Row(
+             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Author', style: TextStyle(color: Colors.grey)),
-                Text('Stuart Turton'),
+                Text(book.author),
               ],
             ),
             const SizedBox(height: 8),
-            const Row(
+             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Genres', style: TextStyle(color: Colors.grey)),
-                Text('Murder, Thrillers'),
+                Text(book.category),
               ],
             ),
             const SizedBox(height: 8),
-            const Row(
+             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Pages', style: TextStyle(color: Colors.grey)),
-                Text('352 p'),
+                Text(book.pages.toString()),
               ],
             ),
             const SizedBox(height: 24),

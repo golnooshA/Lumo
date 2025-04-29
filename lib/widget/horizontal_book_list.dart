@@ -4,7 +4,7 @@ import '../model/book.dart';
 
 class HorizontalBookList extends StatelessWidget {
   final List<Book> books;
-  final VoidCallback onTap;
+  final ValueChanged<Book> onTap;
 
   const HorizontalBookList({
     super.key,
@@ -17,12 +17,14 @@ class HorizontalBookList extends StatelessWidget {
     return SizedBox(
       height: 200,
       child: ListView.builder(
-        padding: EdgeInsets.only(left: 30),
+        padding: EdgeInsets.only(left: 20),
         scrollDirection: Axis.horizontal,
         itemCount: books.length,
         itemBuilder: (_, index) {
           final book = books[index];
-          return BookCoverCard(bookCover: book.coverUrl, onTap: onTap);
+          return BookCoverCard(bookCover: book.coverUrl,
+            onTap: () => onTap(book)
+          );
         },
       ),
     );

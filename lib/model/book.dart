@@ -12,6 +12,8 @@ class Book {
   final double rating;
   final String fileUrl;
   final String category;
+  final bool discount;
+  final double price;
 
   Book({
     required this.id,
@@ -25,9 +27,10 @@ class Book {
     required this.rating,
     required this.fileUrl,
     required this.category,
+    required this.discount,
+    required this.price,
   });
 
-  // Factory constructor to create Book object from Firestore document
   factory Book.fromFirestore(Map<String, dynamic> json, String id) {
     return Book(
       id: id,
@@ -36,11 +39,13 @@ class Book {
       coverUrl: json['cover_url'] ?? '',
       description: json['description'] ?? '',
       pages: (json['pages'] ?? 0) as int,
+      price: (json['price'] ?? 0).toDouble(),
       publishDate: (json['publish_date'] as Timestamp).toDate(),
       publisher: json['publisher'] ?? '',
       rating: (json['rating'] ?? 0).toDouble(),
       fileUrl: json['file_url'] ?? '',
       category: json['category'] ?? '',
+      discount: (json['discount'] ?? false) as bool
     );
   }
 }

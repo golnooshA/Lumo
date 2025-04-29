@@ -3,11 +3,16 @@ import 'package:lumo/widget/book_card.dart';
 import 'package:lumo/widget/icon_text.dart';
 
 import '../design/design_config.dart';
+import '../model/book.dart';
 import '../widget/discount_book_card.dart';
 
 class DescriptionPage extends StatelessWidget {
-  const DescriptionPage({super.key});
+  final String description;
 
+  const DescriptionPage({
+    super.key,
+    required this.description,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -69,18 +74,19 @@ class DescriptionPage extends StatelessWidget {
           ),
         ],
       ),
-      body: Container(
-        margin: const EdgeInsets.all(20),
-        child: Text(
-          "A mind-bending, genre-blending, boy-that-ending mystery unlike any I’ve ever read’ A. J. FINN "
-              "‘I loved it’ C. J. TUDOR ‘An absolute blast’ BENJAMIN ...",
-          style: TextStyle(
-            color: DesignConfig.textColor,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w500,
-            fontSize: DesignConfig.textSize,
-          ),
-        ) ),
+      body: SingleChildScrollView(
+        child: Container(
+          margin: const EdgeInsets.all(20),
+          child: Text(
+            description,
+            style: TextStyle(
+              color: DesignConfig.textColor,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w500,
+              fontSize: DesignConfig.textSize,
+            ),
+          ) ),
+      ),
 
     );
   }

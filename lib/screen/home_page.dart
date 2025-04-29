@@ -6,16 +6,19 @@ import 'package:lumo/widget/horizontal_book_list.dart';
 import 'package:lumo/widget/section_header.dart';
 
 import '../model/book.dart';
+import 'book_detail_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  // Helper method to filter books by category
   List<Book> _filterBooksByCategory(List<Book> books, String category) {
     return books
         .where((book) => book.category.toLowerCase() == category.toLowerCase())
         .toList();
   }
+
+  List<Book> _filterDiscounted(List<Book> books) =>
+      books.where((b) => b.discount == true).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -109,9 +112,9 @@ class HomePage extends StatelessWidget {
                 );
               }).toList();
 
-          final newArrivals = _filterBooksByCategory(books, 'new_arrival');
-          final discountedBooks = _filterBooksByCategory(books, 'discount');
-          final bestSellers = _filterBooksByCategory(books, 'best_seller');
+          final newArrivals   = _filterBooksByCategory(books, 'new_arrival');
+          final bestSellers   = _filterBooksByCategory(books, 'best_seller');
+          final discountedBooks = _filterDiscounted(books);
 
           return ListView(
             children: [
@@ -129,11 +132,29 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               SectionHeader(title: 'New Arrivals', onTap: () {}),
-              HorizontalBookList(books: books, onTap: () {}),
+              HorizontalBookList(
+                books: newArrivals,
+                onTap: (book) => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => BookDetailPage(book: book)),
+                ),
+              ),
               SectionHeader(title: 'Discount', onTap: () {}),
-              HorizontalBookList(books: books, onTap: () {}),
+              HorizontalBookList(
+                books: discountedBooks,
+                onTap: (book) => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => BookDetailPage(book: book)),
+                ),
+              ),
               SectionHeader(title: 'Best Sellers', onTap: () {}),
-              HorizontalBookList(books: books, onTap: () {}),
+              HorizontalBookList(
+                books: bestSellers,
+                onTap: (book) => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => BookDetailPage(book: book)),
+                ),
+              ),
             ],
           );
         },
