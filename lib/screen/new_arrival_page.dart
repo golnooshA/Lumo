@@ -1,56 +1,21 @@
+import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore, QuerySnapshot;
 import 'package:flutter/material.dart';
 import 'package:lumo/widget/book_card.dart';
 import 'package:lumo/widget/icon_text.dart';
 
 import '../design/design_config.dart';
+import '../model/book.dart';
+import 'book_detail_page.dart';
 
-class CategoryPage extends StatelessWidget {
+class NewArrivalPage extends StatelessWidget {
+  const NewArrivalPage({super.key});
 
-  final List<Map<String, String>> books = [
-    {
-      'title': 'Psyche and Eros',
-      'author': 'Luna Mcnamara',
-      'image': 'https://edit.org/images/cat/book-covers-big-2019101610.jpg',
-      'price': '€11,19',
-    },
-    {
-      'title': 'The Cleopatras',
-      'author': 'Lloyd Llewellyn',
-      'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS36GaImhQXaqzdQkhgvQ1ZZtbru_p5-PsOaw&s',
-      'price': '€24,60',
-    },
-    {
-      'title': 'A History of the Roman Empire in 21 Women',
-      'author': 'Emma Southon',
-      'image': 'https://www.designforwriters.com/wp-content/uploads/2017/10/design-for-writers-book-cover-tf-2-a-million-to-one.jpg',
-      'price': '€18,90',
-    },
-    {
-      'title': 'The Greeks',
-      'author': 'Roderick Beaton',
-      'image': 'https://miblart.com/wp-content/uploads/2024/01/main-3-1-scaled.jpg',
-      'price': '€21,50',
-    },
-    {
-      'title': 'The Greeks',
-      'author': 'Roderick Beaton',
-      'image': 'https://miblart.com/wp-content/uploads/2024/01/main-3-1-scaled.jpg',
-      'price': '€21,50',
-    },
-    {
-      'title': 'The Greeks',
-      'author': 'Roderick Beaton',
-      'image': 'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/art-book-cover-design-template-34323b0f0734dccded21e0e3bebf004c_screen.jpg?ts=1637015198',
-      'price': '€21,50',
-    },
-    {
-      'title': 'The Greeks',
-      'author': 'Roderick Beaton',
-      'image': 'https://s26162.pcdn.co/wp-content/uploads/2020/01/Sin-Eater-by-Megan-Campisi.jpg',
-      'price': '€21,50',
-    },
-  ];
 
+  Stream<QuerySnapshot> get bookStream => FirebaseFirestore.instance
+      .collection('books')
+      .where('discount', isEqualTo: false)
+      .snapshots();
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +24,7 @@ class CategoryPage extends StatelessWidget {
           backgroundColor: DesignConfig.appBarBackgroundColor,
           centerTitle: true,
           title: Text(
-            'History',
+            'New Arrival',
             style: TextStyle(
               color: DesignConfig.appBarTitleColor,
               fontFamily: 'Poppins',
@@ -129,24 +94,44 @@ class CategoryPage extends StatelessWidget {
 
             // Book Grid
             Expanded(
-              child: GridView.builder(
-                itemCount: books.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.5,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 20,
-                ),
-                itemBuilder: (context, index) {
-                  final book = books[index];
-                  return BookCard(title: book['title']!,
-                      author: book['author']!,
-                      cover: book['image']!,
-                      price: book['price']!,
+              child: StreamBuilder<QuerySnapshot>(
+                stream: bookStream,
+                builder: (context, snap) {
+                  if (snap.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snap.hasData || snap.data!.docs.isEmpty) {
+                    return const Center(child: Text('No books yet'));
+                  }
 
-                    discountPrice: book['discountPrice']!
+                  final books = snap.data!.docs
+                      .map((d) => Book.fromFirestore(
+                      d.data()! as Map<String, dynamic>, d.id))
+                      .toList();
 
-                    ,onTap: () {  },);
+                  return GridView.builder(
+                    itemCount: books.length,
+                    gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.5,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 20,
+                    ),
+                    itemBuilder: (_, i) => BookCard(
+                      title: books[i].title,
+                      author: books[i].author,
+                      cover: books[i].coverUrl,
+                      price: books[i].price.toStringAsFixed(2),
+                      discountPrice: '',
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BookDetailPage(book: books[i]),
+                        ),
+                      ),
+                    ),
+                  );
                 },
               ),
             ),

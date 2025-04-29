@@ -11,7 +11,6 @@ class BookDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double discountPrice = book.price * (1 - book.price / 100).roundToDouble();
 
     return Scaffold(
       appBar: AppBar(
@@ -25,9 +24,8 @@ class BookDetailPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: ListView(
-          children: [
-            // Book cover
-            Center(
+        children: [
+        Center(
               child: Container(
                 decoration: BoxDecoration(
                   boxShadow: [
@@ -87,12 +85,12 @@ class BookDetailPage extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Add to cart and price
-            CartADButton
-              (title: 'Add to cart',
-                price: book.price.toString(),
-                discountPrice: discountPrice.toString(),
-            cardColor: DesignConfig.addCart),
-
+          CartADButton(
+            title: 'Add to cart',
+            price: book.price.toString(),
+            discountPrice: book.discountPrice.toString(),
+            cardColor: DesignConfig.addCart,
+          ),
             const SizedBox(height: 24),
 
             // Description
@@ -120,8 +118,8 @@ class BookDetailPage extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               book.description,
-              maxLines: 5,                         // ▶︎ only 5 lines
-              overflow: TextOverflow.ellipsis,     // ▶︎ fade with “…”
+              maxLines: 5,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.black87),
             ),
 

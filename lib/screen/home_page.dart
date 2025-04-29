@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lumo/design/design_config.dart';
+import 'package:lumo/screen/discount_page.dart';
+import 'package:lumo/screen/new_arrival_page.dart';
 import 'package:lumo/widget/banner_card.dart';
 import 'package:lumo/widget/horizontal_book_list.dart';
 import 'package:lumo/widget/section_header.dart';
@@ -9,7 +11,7 @@ import '../model/book.dart';
 import 'book_detail_page.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  HomePage({super.key});
 
   List<Book> _filterBooksByCategory(List<Book> books, String category) {
     return books
@@ -17,8 +19,21 @@ class HomePage extends StatelessWidget {
         .toList();
   }
 
-  List<Book> _filterDiscounted(List<Book> books) =>
-      books.where((b) => b.discount == true).toList();
+  // List<Book> _filterDiscounted(List<Book> books) =>
+  //     books.where((b) => b.discount == true).toList();
+
+  // final Stream<QuerySnapshot> newArrivalStream = FirebaseFirestore.instance
+  //     .collection('books')
+  //     .orderBy('createdAt', descending: true)
+  //     .limit(4)
+  //     .snapshots();
+
+  // ⚡ Fetch only discount = true
+  final Stream<QuerySnapshot> discountStream =
+      FirebaseFirestore.instance
+          .collection('books')
+          .where('discount', isEqualTo: true)
+          .snapshots();
 
   @override
   Widget build(BuildContext context) {
@@ -112,9 +127,9 @@ class HomePage extends StatelessWidget {
                 );
               }).toList();
 
-          final newArrivals   = _filterBooksByCategory(books, 'new_arrival');
-          final bestSellers   = _filterBooksByCategory(books, 'best_seller');
-          final discountedBooks = _filterDiscounted(books);
+          final newArrivals = _filterBooksByCategory(books, 'new_arrival');
+          // final bestSellers   = _filterBooksByCategory(books, 'best_seller');
+          // final discountedBooks = _filterDiscounted(books);
 
           return ListView(
             children: [
@@ -131,30 +146,62 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              SectionHeader(title: 'New Arrivals', onTap: () {}),
-              HorizontalBookList(
-                books: newArrivals,
-                onTap: (book) => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => BookDetailPage(book: book)),
+              SectionHeader(title: 'New Arrivals', onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => NewArrivalPage(),
                 ),
-              ),
-              SectionHeader(title: 'Discount', onTap: () {}),
+              )),
               HorizontalBookList(
-                books: discountedBooks,
-                onTap: (book) => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => BookDetailPage(book: book)),
-                ),
+                books: books,
+                onTap:
+                    (b) => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BookDetailPage(book: b),
+                      ),
+                    ),
               ),
-              SectionHeader(title: 'Best Sellers', onTap: () {}),
-              HorizontalBookList(
-                books: bestSellers,
-                onTap: (book) => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => BookDetailPage(book: book)),
+
+              SectionHeader(title: 'Discount', onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DiscountPage(),
                 ),
+              )),
+              StreamBuilder<QuerySnapshot>(
+                stream: discountStream,
+                builder: (context, snap) {
+                  if (!snap.hasData) return const SizedBox(height: 120);
+                  final books =
+                      snap.data!.docs
+                          .map(
+                            (d) => Book.fromFirestore(
+                              d.data()! as Map<String, dynamic>,
+                              d.id,
+                            ),
+                          )
+                          .toList();
+                  return HorizontalBookList(
+                    books: books,
+                    onTap:
+                        (b) => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BookDetailPage(book: b),
+                          ),
+                        ),
+                  );
+                },
               ),
+              // SectionHeader(title: 'Best Sellers', onTap: () {}),
+              // HorizontalBookList(
+              //   books: bestSellers,
+              //   onTap: (book) => Navigator.push(
+              //     context,
+              //     MaterialPageRoute(builder: (_) => BookDetailPage(book: book)),
+              //   ),
+              // ),
             ],
           );
         },

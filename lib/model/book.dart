@@ -14,6 +14,7 @@ class Book {
   final String category;
   final bool discount;
   final double price;
+  final double discountPrice;
 
   Book({
     required this.id,
@@ -29,6 +30,7 @@ class Book {
     required this.category,
     required this.discount,
     required this.price,
+    required this.discountPrice,
   });
 
   factory Book.fromFirestore(Map<String, dynamic> json, String id) {
@@ -40,12 +42,13 @@ class Book {
       description: json['description'] ?? '',
       pages: (json['pages'] ?? 0) as int,
       price: (json['price'] ?? 0).toDouble(),
+      discountPrice: (json['discountPrice'] ?? 0).toDouble(),
       publishDate: (json['publish_date'] as Timestamp).toDate(),
       publisher: json['publisher'] ?? '',
       rating: (json['rating'] ?? 0).toDouble(),
       fileUrl: json['file_url'] ?? '',
       category: json['category'] ?? '',
-      discount: (json['discount'] ?? false) as bool
+      discount: (json['discount'] ?? false) as bool,
     );
   }
 }
