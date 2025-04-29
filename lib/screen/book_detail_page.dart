@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lumo/widget/add_to_cart_button.dart';
 import '../design/design_config.dart';
 import '../model/book.dart';
+import '../widget/bottom_navigation.dart';
 import 'description_page.dart';
 
 class BookDetailPage extends StatelessWidget {
@@ -21,6 +22,7 @@ class BookDetailPage extends StatelessWidget {
         backgroundColor: DesignConfig.appBarBackgroundColor,
         elevation: 0,
       ),
+      bottomNavigationBar: const BottomNavigation(currentIndex: 1),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: ListView(

@@ -8,6 +8,7 @@ import 'package:lumo/widget/horizontal_book_list.dart';
 import 'package:lumo/widget/section_header.dart';
 
 import '../model/book.dart';
+import '../widget/bottom_navigation.dart';
 import 'book_detail_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -49,66 +50,7 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(
-                AssetImage('assets/icon/home_light.png'),
-                color: Colors.grey,
-              ),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(
-                AssetImage('assets/icon/search_light.png'),
-                color: Colors.grey,
-              ),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(
-                AssetImage('assets/icon/bookmark_light.png'),
-                color: Colors.grey,
-              ),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(
-                AssetImage('assets/icon/discount_light.png'),
-                color: Colors.grey,
-              ),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(
-                AssetImage('assets/icon/user_light.png'),
-                color: Colors.grey,
-              ),
-            ),
-            label: '',
-          ),
-        ],
-      ),
+      bottomNavigationBar: const BottomNavigation(currentIndex: 0),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('books').snapshots(),
         builder: (context, snapshot) {

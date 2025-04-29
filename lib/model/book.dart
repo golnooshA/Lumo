@@ -38,7 +38,7 @@ class Book {
       id: id,
       title: json['title'] ?? '',
       author: json['author'] ?? '',
-      coverUrl: json['cover_url'] ?? '',
+      coverUrl: (json['cover_url'] ?? json['coverUrl'] ?? '') as String,
       description: json['description'] ?? '',
       pages: (json['pages'] ?? 0) as int,
       price: (json['price'] ?? 0).toDouble(),
@@ -46,7 +46,7 @@ class Book {
       publishDate: (json['publish_date'] as Timestamp).toDate(),
       publisher: json['publisher'] ?? '',
       rating: (json['rating'] ?? 0).toDouble(),
-      fileUrl: json['file_url'] ?? '',
+      fileUrl: (json['file_url'] ?? json['fileUrl'] ?? '') as String,
       category: json['category'] ?? '',
       discount: (json['discount'] ?? false) as bool,
     );

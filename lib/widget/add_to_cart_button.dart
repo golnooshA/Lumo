@@ -6,6 +6,8 @@ class CartADButton extends StatelessWidget {
   final String price;
   final String discountPrice;
   final Color cardColor;
+  // final VoidCallback onTap;
+
 
   const CartADButton({
     super.key,
