@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:lumo/screen/search_page.dart';
-
 import 'screen/home_page.dart';
 
 void main() async {
@@ -17,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Lumo Book App',
-      home: SearchPage(), // your homepage
+      home: HomePage(), // your homepage
     );
   }
 }
