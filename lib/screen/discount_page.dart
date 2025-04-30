@@ -6,7 +6,6 @@ import 'package:lumo/widget/icon_text.dart';
 import '../design/design_config.dart';
 import '../model/book.dart';
 import '../widget/bottom_navigation.dart';
-import '../widget/discount_book_card.dart';
 import 'book_detail_page.dart';
 
 class DiscountPage extends StatelessWidget {

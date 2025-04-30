@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:lumo/screen/details_page.dart';
 import 'package:lumo/widget/add_to_cart_button.dart';
 import '../design/design_config.dart';
 import '../model/book.dart';
 import '../widget/bottom_navigation.dart';
+import '../widget/details_row.dart';
 import 'description_page.dart';
 
 class BookDetailPage extends StatelessWidget {
   final Book book;
+
   const BookDetailPage({super.key, required this.book});
 
   @override
@@ -28,14 +31,16 @@ class BookDetailPage extends StatelessWidget {
             // ── cover ──
             Center(
               child: Container(
-                decoration: BoxDecoration(boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                    offset: Offset(0, 4),
-                  )
-                ]),
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(book.coverUrl, height: 220),
@@ -51,8 +56,7 @@ class BookDetailPage extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style:
-              const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 8),
@@ -63,17 +67,19 @@ class BookDetailPage extends StatelessWidget {
               children: [
                 ...List.generate(
                   5,
-                      (i) => Icon(
-                    i < book.rating.round()
-                        ? Icons.star
-                        : Icons.star_border,
-                    color: Colors.amber,
-                    size: 20,
-                  ),
+                      (i) =>
+                      Icon(
+                        i < book.rating.round() ? Icons.star : Icons
+                            .star_border,
+                        color: Colors.amber,
+                        size: 20,
+                      ),
                 ),
                 const SizedBox(width: 8),
-                Text(book.rating.toString(),
-                    style: const TextStyle(color: Colors.grey)),
+                Text(
+                  book.rating.toString(),
+                  style: const TextStyle(color: Colors.grey),
+                ),
                 const Spacer(),
                 const Icon(Icons.favorite_border),
                 const SizedBox(width: 16),
@@ -93,28 +99,40 @@ class BookDetailPage extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // ── description preview ──
-            InkWell(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      DescriptionPage(description: book.description),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Description',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: DesignConfig.textSize,
+                  ),
                 ),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Description',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: DesignConfig.textSize)),
-                  Text('more >', style: TextStyle(color: Colors.orange)),
-                ],
-              ),
+                InkWell(
+                  onTap:
+                      () =>
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) =>
+                              DescriptionPage(
+                                description: book.description,
+                              ),
+                        ),
+                      ),
+                  child: const Text(
+                    'more >',
+                    style: TextStyle(color: Colors.orange),
+                  ),
+                ),
+              ],
             ),
 
-            const SizedBox(height: 8),
+            const Divider(height: 20),
+
+            // const SizedBox(height: 8),
             Text(
               book.description,
               maxLines: 5,
@@ -123,39 +141,44 @@ class BookDetailPage extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ── details ──
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Details',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: DesignConfig.textSize)),
-                Text('more >', style: TextStyle(color: Colors.orange)),
+                const Text(
+                  'Details',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: DesignConfig.textSize,
+                  ),
+                ),
+                InkWell(
+                  onTap: () =>
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DetailsPage(book: book),
+                        ),
+                      ),
+                  child: const Text('more >',
+                      style: TextStyle(color: Colors.orange)),
+                ),
               ],
             ),
+
             const Divider(height: 20),
 
-            _detailRow('Author', book.author),
-            _detailRow(
-                'Genres', book.categories.join(', ')),     // << changed
-            _detailRow('Pages', book.pages.toString()),
+            DetailsRow(title: 'Author', value: book.author),
+            DetailsRow(
+              title: 'Categories',
+              value:
+              book.categories.isNotEmpty ? book.categories.join(', ') : '—',
+            ),
+            DetailsRow(title: 'Pages', value: book.pages.toString()),
+
             const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
-
-  /// helper for the three key/value rows
-  Widget _detailRow(String k, String v) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(k, style: const TextStyle(color: Colors.grey)),
-        Flexible(child: Text(v, textAlign: TextAlign.right)),
-      ],
-    ),
-  );
 }

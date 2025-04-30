@@ -6,7 +6,6 @@ import 'package:lumo/screen/new_arrival_page.dart';
 import 'package:lumo/widget/banner_card.dart';
 import 'package:lumo/widget/horizontal_book_list.dart';
 import 'package:lumo/widget/section_header.dart';
-
 import '../model/book.dart';
 import '../widget/bottom_navigation.dart';
 import 'book_detail_page.dart';

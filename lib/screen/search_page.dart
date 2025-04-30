@@ -9,17 +9,17 @@ import 'book_detail_page.dart';
 import 'category_page.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({Key? key}) : super(key: key);
+  const SearchPage({super.key});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
-  final TextEditingController _controller = TextEditingController();
+  final _controller = TextEditingController();
   String _query = '';
 
-  /// Single stream with every book (ordered once, filtered client-side).
+  // one snapshot for every book (cheapest dev-time option)
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _allBooks =
   FirebaseFirestore.instance
       .collection('books')
@@ -43,7 +43,7 @@ class _SearchPageState extends State<SearchPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── search field
+
           Padding(
             padding: const EdgeInsets.all(20),
             child: TextField(
@@ -55,35 +55,29 @@ class _SearchPageState extends State<SearchPage> {
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
               ),
-              onChanged: (value) => setState(() => _query = value),
+              onChanged: (v) => setState(() => _query = v),
             ),
           ),
 
-          // ── categories
+          // ── categories ──
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'Categories',
-              style: TextStyle(
-                fontSize: DesignConfig.headerSize,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text('Categories',
+                style: TextStyle(
+                    fontSize: DesignConfig.headerSize,
+                    fontWeight: FontWeight.bold)),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           _buildCategories(),
 
-          // ── results
-          const SizedBox(height: 18),
+          // ── results ──
+          const SizedBox(height: 20),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'Results',
-              style: TextStyle(
-                fontSize: DesignConfig.headerSize,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text('Results',
+                style: TextStyle(
+                    fontSize: DesignConfig.headerSize,
+                    fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 12),
           _buildResults(),
@@ -91,7 +85,6 @@ class _SearchPageState extends State<SearchPage> {
       ),
     );
   }
-
 
   Widget _buildCategories() => SizedBox(
     height: 40,
@@ -102,26 +95,26 @@ class _SearchPageState extends State<SearchPage> {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const SizedBox();
-
-        final categories = snapshot.data!.docs
-            .map((doc) => doc['name'] as String)
-            .toList(growable: false);
+        final cats =
+        snapshot.data!.docs.map((d) => d['name'] as String).toList();
 
         return ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           scrollDirection: Axis.horizontal,
-          itemCount: categories.length,
+          itemCount: cats.length,
           separatorBuilder: (_, __) => const SizedBox(width: 8),
-          itemBuilder: (context, index) {
-            final category = categories[index];
+          itemBuilder: (_, i) {
+            final c = cats[i];
             return GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CategoryPage(category: category),
-                ),
-              ),
-              child: RoundButton(buttonText: category),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CategoryPage(category: c),   // catName == "classic"
+                  ),
+                );
+              },
+              child: RoundButton(buttonText: c),
             );
           },
         );
@@ -132,20 +125,29 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildResults() => Expanded(
     child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: _allBooks,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+      builder: (context, snap) {
+        if (!snap.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
         final q = _query.trim().toLowerCase();
-        final books = snapshot.data!.docs
-            .where((doc) {
-          if (q.isEmpty) return true; // show everything
-          final title = (doc['title'] as String).toLowerCase();
-          return title.contains(q);
-        })
-            .map((doc) => Book.fromFirestore(doc.data(), doc.id))
-            .toList(growable: false);
+
+        final books = snap.data!.docs.where((doc) {
+          final data = doc.data();
+          if (q.isEmpty) return true;
+
+          final title = (data['title'] as String? ?? '').toLowerCase();
+          if (title.contains(q)) return true;
+
+          final cats = [
+            ...((data['categories'] as List<dynamic>? ?? const [])
+                .map((e) => e.toString())),
+            if ((data['category'] as String?)?.isNotEmpty ?? false)
+              data['category'] as String,
+          ];
+          return cats.any((c) => c.toLowerCase().contains(q));
+
+        }).map((doc) => Book.fromFirestore(doc.data(), doc.id)).toList();
 
         if (books.isEmpty) {
           return const Center(child: Text('No books found'));
@@ -154,20 +156,21 @@ class _SearchPageState extends State<SearchPage> {
         return GridView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           itemCount: books.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate:
+          const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: .65,
             crossAxisSpacing: 12,
             mainAxisSpacing: 20,
           ),
-          itemBuilder: (context, index) {
-            final book = books[index];
+          itemBuilder: (_, i) {
+            final b = books[i];
             return BookCoverCard(
-              bookCover: book.coverUrl,
+              bookCover: b.coverUrl,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => BookDetailPage(book: book),
+                  builder: (_) => BookDetailPage(book: b),
                 ),
               ),
             );
