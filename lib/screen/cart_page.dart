@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lumo/widget/purchest_card.dart';
 import '../design/design_config.dart';
+import '../widget/bottom_navigation.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -69,51 +70,7 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/home_light.png'), color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/search_light.png'), color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/bookmark_light.png'), color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/discount_light.png'), color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/user_light.png'), color: Colors.grey),
-            ),
-            label: '',
-          ),
-        ],
-      ),
+      bottomNavigationBar:  const BottomNavigation(currentIndex: 4),
       body: TabBarView(
         controller: _tabController,
         children: [

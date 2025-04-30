@@ -4,6 +4,7 @@ import 'package:lumo/widget/icon_text.dart';
 
 import '../design/design_config.dart';
 import '../model/book.dart';
+import '../widget/bottom_navigation.dart';
 import '../widget/discount_book_card.dart';
 
 class DescriptionPage extends StatelessWidget {
@@ -29,51 +30,7 @@ class DescriptionPage extends StatelessWidget {
               fontSize: DesignConfig.appBarTitleFontSize,
             ),
           )),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/home_light.png'),color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/search_light.png'),color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/bookmark_light.png'),color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/discount_light.png'),color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/user_light.png'),color: Colors.grey),
-            ),
-            label: '',
-          ),
-        ],
-      ),
+      bottomNavigationBar:  const BottomNavigation(currentIndex: 1),
       body: SingleChildScrollView(
         child: Container(
           margin: const EdgeInsets.all(20),

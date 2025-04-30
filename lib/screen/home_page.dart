@@ -14,27 +14,22 @@ import 'book_detail_page.dart';
 class HomePage extends StatelessWidget {
   HomePage({super.key});
 
-  List<Book> _filterBooksByCategory(List<Book> books, String category) {
+
+  List<Book> _filterBooksByCategory(
+      List<Book> books, String categoryName) {
+    final q = categoryName.toLowerCase();
     return books
-        .where((book) => book.category.toLowerCase() == category.toLowerCase())
+        .where((book) =>
+        book.categories.any((c) => c.toLowerCase() == q))
         .toList();
   }
 
-  // List<Book> _filterDiscounted(List<Book> books) =>
-  //     books.where((b) => b.discount == true).toList();
+  // ⚡ fetch only books with discount = true
+  final Stream<QuerySnapshot> _discountStream = FirebaseFirestore.instance
+      .collection('books')
+      .where('discount', isEqualTo: true)
+      .snapshots();
 
-  // final Stream<QuerySnapshot> newArrivalStream = FirebaseFirestore.instance
-  //     .collection('books')
-  //     .orderBy('createdAt', descending: true)
-  //     .limit(4)
-  //     .snapshots();
-
-  // ⚡ Fetch only discount = true
-  final Stream<QuerySnapshot> discountStream =
-      FirebaseFirestore.instance
-          .collection('books')
-          .where('discount', isEqualTo: true)
-          .snapshots();
 
   @override
   Widget build(BuildContext context) {
@@ -61,24 +56,25 @@ class HomePage extends StatelessWidget {
             return const Center(child: Text('No books available'));
           }
 
-          final books =
-              snapshot.data!.docs.map((doc) {
-                return Book.fromFirestore(
-                  doc.data() as Map<String, dynamic>,
-                  doc.id,
-                );
-              }).toList();
+          // convert every Firestore doc → Book
+          final books = snapshot.data!.docs
+              .map((d) => Book.fromFirestore(
+            d.data()! as Map<String, dynamic>,
+            d.id,
+          ))
+              .toList(growable: false);
 
+          // home-page sections
           final newArrivals = _filterBooksByCategory(books, 'new_arrival');
-          // final bestSellers   = _filterBooksByCategory(books, 'best_seller');
-          // final discountedBooks = _filterDiscounted(books);
+          // final bestSellers = _filterBooksByCategory(books, 'best_seller');
 
           return ListView(
             children: [
+              // ── banner carousel ──
               Container(
-                color: DesignConfig.light_light_blue,
-                width: MediaQuery.of(context).size.width,
                 height: 200,
+                width: double.infinity,
+                color: DesignConfig.light_light_blue,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: const [
@@ -87,63 +83,58 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
+
               const SizedBox(height: 16),
-              SectionHeader(title: 'New Arrivals', onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => NewArrivalPage(),
+
+              // ── new arrivals ──
+              SectionHeader(
+                title: 'New Arrivals',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => NewArrivalPage()),
                 ),
-              )),
+              ),
               HorizontalBookList(
-                books: books,
-                onTap:
-                    (b) => Navigator.push(
+                books: newArrivals,                       // << changed
+                onTap: (b) => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BookDetailPage(book: b),
+                  ),
+                ),
+              ),
+
+              // ── discount ──
+              SectionHeader(
+                title: 'Discount',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => DiscountPage()),
+                ),
+              ),
+              StreamBuilder<QuerySnapshot>(
+                stream: _discountStream,
+                builder: (context, snap) {
+                  if (!snap.hasData) return const SizedBox(height: 120);
+
+                  final discounted = snap.data!.docs
+                      .map((d) => Book.fromFirestore(
+                    d.data()! as Map<String, dynamic>,
+                    d.id,
+                  ))
+                      .toList(growable: false);
+
+                  return HorizontalBookList(
+                    books: discounted,
+                    onTap: (b) => Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => BookDetailPage(book: b),
                       ),
                     ),
-              ),
-
-              SectionHeader(title: 'Discount', onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DiscountPage(),
-                ),
-              )),
-              StreamBuilder<QuerySnapshot>(
-                stream: discountStream,
-                builder: (context, snap) {
-                  if (!snap.hasData) return const SizedBox(height: 120);
-                  final books =
-                      snap.data!.docs
-                          .map(
-                            (d) => Book.fromFirestore(
-                              d.data()! as Map<String, dynamic>,
-                              d.id,
-                            ),
-                          )
-                          .toList();
-                  return HorizontalBookList(
-                    books: books,
-                    onTap:
-                        (b) => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BookDetailPage(book: b),
-                          ),
-                        ),
                   );
                 },
               ),
-              // SectionHeader(title: 'Best Sellers', onTap: () {}),
-              // HorizontalBookList(
-              //   books: bestSellers,
-              //   onTap: (book) => Navigator.push(
-              //     context,
-              //     MaterialPageRoute(builder: (_) => BookDetailPage(book: book)),
-              //   ),
-              // ),
             ],
           );
         },

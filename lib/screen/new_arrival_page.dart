@@ -5,6 +5,7 @@ import 'package:lumo/widget/icon_text.dart';
 
 import '../design/design_config.dart';
 import '../model/book.dart';
+import '../widget/bottom_navigation.dart';
 import 'book_detail_page.dart';
 
 class NewArrivalPage extends StatelessWidget {
@@ -32,57 +33,12 @@ class NewArrivalPage extends StatelessWidget {
               fontSize: DesignConfig.appBarTitleFontSize,
             ),
           )),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/home_light.png'),color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/search_light.png'),color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/bookmark_light.png'),color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/discount_light.png'),color: Colors.grey),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: ImageIcon(AssetImage('assets/icon/user_light.png'),color: Colors.grey),
-            ),
-            label: '',
-          ),
-        ],
-      ),
+      bottomNavigationBar:  const BottomNavigation(currentIndex: 0),
       body: Container(
         margin: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Filter and Sort Row
             Row(
               children:  [
                 IconText(text: 'Filter', icon: Icons.tune, onTap: (){}),
@@ -92,7 +48,6 @@ class NewArrivalPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Book Grid
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: bookStream,
