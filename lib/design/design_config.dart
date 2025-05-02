@@ -9,6 +9,7 @@ class DesignConfig {
   static const Color lemon = Color(0xFFfdfa66);
   static const Color addCart = Color(0xFF1AC0C6);
   static const Color deleteCart = Color(0xFFFF282A);
+  static const Color bookmarked = Color(0xFFe74645);
 
   static const Color priceColor = Color(0xFF027A92);
   static const Color shadowColor = Colors.black26;

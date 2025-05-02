@@ -1,3 +1,5 @@
+import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lumo/screen/details_page.dart';
 import 'package:lumo/widget/add_to_cart_button.dart';
@@ -6,14 +8,36 @@ import '../model/book.dart';
 import '../widget/bottom_navigation.dart';
 import '../widget/details_row.dart';
 import 'description_page.dart';
+import 'package:share_plus/share_plus.dart';
 
-class BookDetailPage extends StatelessWidget {
+class BookDetailPage extends StatefulWidget {
   final Book book;
-
   const BookDetailPage({super.key, required this.book});
+  @override
+  State<BookDetailPage> createState() => _BookDetailPageState();
+}
+
+class _BookDetailPageState extends State<BookDetailPage> {
+  late bool isBookmarked;
+
+  @override
+  void initState() {
+    super.initState();
+    isBookmarked = widget.book.bookmark;
+  }
+
+  void _toggleBookmark() async {
+    final newStatus = !isBookmarked;
+    setState(() => isBookmarked = newStatus);
+    await FirebaseFirestore.instance
+        .collection('books')
+        .doc(widget.book.id)
+        .update({'bookmark': newStatus});
+  }
 
   @override
   Widget build(BuildContext context) {
+    final book = widget.book;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -28,7 +52,6 @@ class BookDetailPage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: ListView(
           children: [
-            // ── cover ──
             Center(
               child: Container(
                 decoration: BoxDecoration(
@@ -47,134 +70,89 @@ class BookDetailPage extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // ── title ──
             Text(
               book.title,
+              textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 8),
-
-            // ── rating & icons ──
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ...List.generate(
                   5,
-                      (i) =>
-                      Icon(
-                        i < book.rating.round() ? Icons.star : Icons
-                            .star_border,
-                        color: Colors.amber,
-                        size: 20,
-                      ),
+                      (i) => Icon(
+                    i < book.rating.round() ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  book.rating.toString(),
-                  style: const TextStyle(color: Colors.grey),
-                ),
+                Text(book.rating.toString(), style: const TextStyle(color: Colors.grey)),
                 const Spacer(),
-                const Icon(Icons.favorite_border),
-                const SizedBox(width: 16),
-                const Icon(Icons.share),
+                IconButton(
+                  icon: Icon(
+                    isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  ),
+                  onPressed: _toggleBookmark,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.share),
+                  onPressed: () {
+                    log('Clicked Share');
+                    final text = '${book.title} by ${book.author}\nCheck it out on Lumo!';
+                    Share.share(text);
+                  },
+                ),
               ],
             ),
-
             const SizedBox(height: 20),
-
-            // ── add to cart ──
             CartADButton(
               title: 'Add to cart',
               price: book.price.toString(),
               discountPrice: book.discountPrice.toString(),
               cardColor: DesignConfig.addCart,
+              onTap: () {},
             ),
-
             const SizedBox(height: 24),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Description',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: DesignConfig.textSize,
-                  ),
-                ),
+                const Text('Description', style: TextStyle(fontWeight: FontWeight.bold)),
                 InkWell(
-                  onTap:
-                      () =>
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (_) =>
-                              DescriptionPage(
-                                description: book.description,
-                              ),
-                        ),
-                      ),
-                  child: const Text(
-                    'more >',
-                    style: TextStyle(color: Colors.orange),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DescriptionPage(description: book.description),
+                    ),
                   ),
+                  child: const Text('more >', style: TextStyle(color: Colors.orange)),
                 ),
               ],
             ),
-
             const Divider(height: 20),
-
-            // const SizedBox(height: 8),
-            Text(
-              book.description,
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
-            ),
-
-            const SizedBox(height: 20),
-
+            Text(book.description, maxLines: 5, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Details',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: DesignConfig.textSize,
-                  ),
-                ),
+                const Text('Details', style: TextStyle(fontWeight: FontWeight.bold)),
                 InkWell(
-                  onTap: () =>
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => DetailsPage(book: book),
-                        ),
-                      ),
-                  child: const Text('more >',
-                      style: TextStyle(color: Colors.orange)),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => DetailsPage(book: book)),
+                  ),
+                  child: const Text('more >', style: TextStyle(color: Colors.orange)),
                 ),
               ],
             ),
-
             const Divider(height: 20),
-
             DetailsRow(title: 'Author', value: book.author),
-            DetailsRow(
-              title: 'Categories',
-              value:
-              book.categories.isNotEmpty ? book.categories.join(', ') : '—',
-            ),
+            DetailsRow(title: 'Categories', value: book.categories.join(', ')),
             DetailsRow(title: 'Pages', value: book.pages.toString()),
-
             const SizedBox(height: 24),
           ],
         ),

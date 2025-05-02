@@ -6,8 +6,7 @@ class CartADButton extends StatelessWidget {
   final String price;
   final String discountPrice;
   final Color cardColor;
-  // final VoidCallback onTap;
-
+  final VoidCallback onTap;
 
   const CartADButton({
     super.key,
@@ -15,6 +14,7 @@ class CartADButton extends StatelessWidget {
     required this.price,
     required this.discountPrice,
     required this.cardColor,
+    required this.onTap,
   });
 
   @override
@@ -23,36 +23,39 @@ class CartADButton extends StatelessWidget {
     final pp = double.tryParse(price) ?? 0;
     final hasDiscount = dp > 0 && dp < pp;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      width: 200,
-      margin: EdgeInsets.symmetric(horizontal: 50),
-      // alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: cardColor, // Teal-like background
-        borderRadius: BorderRadius.circular(40),
-        boxShadow: [
-          BoxShadow(color: Colors.white, blurRadius: 4, offset: Offset(0, 2)),
-        ],
-      ),
-      child: Row(
-        // mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontSize: 16,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        width: 200,
+        margin: EdgeInsets.symmetric(horizontal: 50),
+        // alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: cardColor, // Teal-like background
+          borderRadius: BorderRadius.circular(40),
+          boxShadow: [
+            BoxShadow(color: Colors.white, blurRadius: 4, offset: Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          // mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: 16,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Container(height: 24, width: 1, color: Colors.white),
-          const SizedBox(width: 12),
-          hasDiscount ? _priceWithDiscount(dp, pp) : _singlePrice(pp),
-        ],
+            const SizedBox(width: 12),
+            Container(height: 24, width: 1, color: Colors.white),
+            const SizedBox(width: 12),
+            hasDiscount ? _priceWithDiscount(dp, pp) : _singlePrice(pp),
+          ],
+        ),
       ),
     );
   }
@@ -93,4 +96,3 @@ class CartADButton extends StatelessWidget {
     );
   }
 }
-

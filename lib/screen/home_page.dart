@@ -11,24 +11,14 @@ import '../widget/bottom_navigation.dart';
 import 'book_detail_page.dart';
 
 class HomePage extends StatelessWidget {
-  HomePage({super.key});
+  const HomePage({super.key});
 
-
-  List<Book> _filterBooksByCategory(
-      List<Book> books, String categoryName) {
+  List<Book> _filterBooksByCategory(List<Book> books, String categoryName) {
     final q = categoryName.toLowerCase();
     return books
-        .where((book) =>
-        book.categories.any((c) => c.toLowerCase() == q))
+        .where((book) => book.categories.any((c) => c.toLowerCase() == q))
         .toList();
   }
-
-  // ⚡ fetch only books with discount = true
-  final Stream<QuerySnapshot> _discountStream = FirebaseFirestore.instance
-      .collection('books')
-      .where('discount', isEqualTo: true)
-      .snapshots();
-
 
   @override
   Widget build(BuildContext context) {
@@ -55,17 +45,22 @@ class HomePage extends StatelessWidget {
             return const Center(child: Text('No books available'));
           }
 
-          // convert every Firestore doc → Book
           final books = snapshot.data!.docs
-              .map((d) => Book.fromFirestore(
-            d.data()! as Map<String, dynamic>,
-            d.id,
-          ))
+              .map(
+                (d) =>
+                    Book.fromFirestore(d.data()! as Map<String, dynamic>, d.id),
+              )
               .toList(growable: false);
 
-          // home-page sections
-          final newArrivals = _filterBooksByCategory(books, 'new_arrival');
-          // final bestSellers = _filterBooksByCategory(books, 'best_seller');
+          final newArrivals = books
+              .where((b) =>
+          (b.discount == false) &&
+              (b.discountPrice == 0))
+              .toList();
+
+          final discounted = books
+              .where((b) => b.discount == true)
+              .toList(growable: false);
 
           return ListView(
             children: [
@@ -87,52 +82,42 @@ class HomePage extends StatelessWidget {
 
               // ── new arrivals ──
               SectionHeader(
-                title: 'New Arrivals',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => NewArrivalPage()),
-                ),
+                title: 'New Arrival',
+                onTap:
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => NewArrivalPage()),
+                    ),
               ),
               HorizontalBookList(
-                books: newArrivals,                       // << changed
-                onTap: (b) => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BookDetailPage(book: b),
-                  ),
-                ),
-              ),
-
-              // ── discount ──
-              SectionHeader(
-                title: 'Discount',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => DiscountPage()),
-                ),
-              ),
-              StreamBuilder<QuerySnapshot>(
-                stream: _discountStream,
-                builder: (context, snap) {
-                  if (!snap.hasData) return const SizedBox(height: 120);
-
-                  final discounted = snap.data!.docs
-                      .map((d) => Book.fromFirestore(
-                    d.data()! as Map<String, dynamic>,
-                    d.id,
-                  ))
-                      .toList(growable: false);
-
-                  return HorizontalBookList(
-                    books: discounted,
-                    onTap: (b) => Navigator.push(
+                books: newArrivals.take(4).toList(),
+                onTap:
+                    (b) => Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => BookDetailPage(book: b),
                       ),
                     ),
-                  );
-                },
+              ),
+
+              // ── discount ──
+              SectionHeader(
+                title: 'Discount',
+                onTap:
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => DiscountPage()),
+                    ),
+              ),
+              HorizontalBookList(
+                books: discounted.take(4).toList(),
+                onTap:
+                    (b) => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BookDetailPage(book: b),
+                      ),
+                    ),
               ),
             ],
           );

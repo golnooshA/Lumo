@@ -12,7 +12,7 @@ class DiscountPage extends StatelessWidget {
   final Stream<QuerySnapshot> discountStream =
       FirebaseFirestore.instance
           .collection('books')
-          .where('discount', isEqualTo: true)
+          .where('discountPrice', isGreaterThan: 0)
           .snapshots();
 
   @override
@@ -87,9 +87,10 @@ class DiscountPage extends StatelessWidget {
                         author: book.author,
                         cover: book.coverUrl,
                         price: book.price.toStringAsFixed(2),
-                        discountPrice: dp == 0
-                            ? ''                          //  ← no badge
-                            : dp.toStringAsFixed(2),
+                        discountPrice:
+                            dp == 0
+                                ? '' //  ← no badge
+                                : dp.toStringAsFixed(2),
                         onTap:
                             () => Navigator.push(
                               context,

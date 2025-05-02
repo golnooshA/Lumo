@@ -12,10 +12,8 @@ class NewArrivalPage extends StatelessWidget {
   const NewArrivalPage({super.key});
 
 
-  Stream<QuerySnapshot> get bookStream => FirebaseFirestore.instance
-      .collection('books')
-      .where('discount', isEqualTo: false)
-      .snapshots();
+  Stream<QuerySnapshot> get bookStream =>
+      FirebaseFirestore.instance.collection('books').snapshots();
  
 
   @override
@@ -62,6 +60,9 @@ class NewArrivalPage extends StatelessWidget {
                   final books = snap.data!.docs
                       .map((d) => Book.fromFirestore(
                       d.data()! as Map<String, dynamic>, d.id))
+                      .where((book) =>
+                  (book.discount == false) &&
+                      (book.discountPrice == 0))
                       .toList();
 
                   return GridView.builder(
@@ -79,7 +80,7 @@ class NewArrivalPage extends StatelessWidget {
                       cover: books[i].coverUrl,
                       price: books[i].price.toStringAsFixed(2),
                       discountPrice: '',
-                    onTap: () => Navigator.push(
+                      onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => BookDetailPage(book: books[i]),
@@ -90,6 +91,7 @@ class NewArrivalPage extends StatelessWidget {
                 },
               ),
             ),
+
           ],
         ),
       ),
