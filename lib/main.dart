@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:lumo/screen/bookmark_page.dart';
+import 'package:lumo/screen/account_page.dart';
+import 'package:lumo/screen/cart_page.dart';
 import 'screen/home_page.dart';
 
 void main() async {
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Lumo Book App',
-      home: BookmarkPage(), // your homepage
+      home: AccountPage(), // your homepage
     );
   }
 }

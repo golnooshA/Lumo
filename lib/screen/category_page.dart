@@ -31,7 +31,7 @@ class CategoryPage extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomNavigation(currentIndex: 2),
+      bottomNavigationBar: const BottomNavigation(currentIndex: 1),
       body: Container(
         margin: const EdgeInsets.all(20),
         child: Column(

@@ -19,6 +19,7 @@ dependencies:
   cached_network_image: ^3.4.1
   intl: ^0.20.2
   share_plus: ^11.0.0
+  image_picker: ^1.0.4
 
 dev_dependencies:
   flutter_test:
@@ -44,6 +45,7 @@ flutter:
     - assets/icon/tag.png
     - assets/icon/google_icon.png
     - assets/icon/facebook_icon.png
+    - assets/icon/cart_light.png
     - assets/image/banner_one.png
     - assets/image/banner_two.png
 

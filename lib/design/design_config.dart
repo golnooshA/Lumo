@@ -8,7 +8,8 @@ class DesignConfig {
   static const Color yellow = Color(0xFFfacd60);
   static const Color lemon = Color(0xFFfdfa66);
   static const Color addCart = Color(0xFF1AC0C6);
-  static const Color deleteCart = Color(0xFFFF282A);
+  static const Color bottomNavigationSelected = Color(0xFF1AC0C6);
+  static const Color deleteCart = Color(0xFFe74645);
   static const Color bookmarked = Color(0xFFe74645);
 
   static const Color priceColor = Color(0xFF027A92);
@@ -17,7 +18,8 @@ class DesignConfig {
   static const Color subTextColor = Colors.black54;
 
   static const Color appBarTitleColor = Colors.black;
-  static const Color appBarBackgroundColor = Colors.transparent;
+  static const Color appBarBackgroundColor = Colors.white;
+  static const Color backgroundColor = Colors.white;
   static const Color homeAppBarBackgroundColor = Color(0xFFD9E5E6);
 
 

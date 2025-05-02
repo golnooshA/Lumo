@@ -31,7 +31,7 @@ class DiscountPage extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomNavigation(currentIndex: 3),
+      bottomNavigationBar: const BottomNavigation(currentIndex: 0),
       body: Container(
         margin: const EdgeInsets.all(20),
         child: Column(

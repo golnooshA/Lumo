@@ -19,11 +19,13 @@ class BookDetailPage extends StatefulWidget {
 
 class _BookDetailPageState extends State<BookDetailPage> {
   late bool isBookmarked;
+  late bool isInCart;
 
   @override
   void initState() {
     super.initState();
     isBookmarked = widget.book.bookmark;
+    isInCart = widget.book.cart;
   }
 
   void _toggleBookmark() async {
@@ -111,11 +113,21 @@ class _BookDetailPageState extends State<BookDetailPage> {
             ),
             const SizedBox(height: 20),
             CartADButton(
-              title: 'Add to cart',
+              title: isInCart ? 'Delete from Cart' : 'Add to cart',
               price: book.price.toString(),
               discountPrice: book.discountPrice.toString(),
-              cardColor: DesignConfig.addCart,
-              onTap: () {},
+              cardColor: isInCart ? DesignConfig.deleteCart: DesignConfig.addCart,
+              onTap: () async {
+                final newStatus = !isInCart;
+                setState(() => isInCart = newStatus);
+                await FirebaseFirestore.instance
+                    .collection('books')
+                    .doc(book.id)
+                    .update({'cart': newStatus});
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(newStatus ? 'Added to cart' : 'Removed from cart')),
+                );
+              },
             ),
             const SizedBox(height: 24),
             Row(
