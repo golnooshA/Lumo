@@ -1,14 +1,10 @@
-// ✅ FINAL UPDATED CARTPAGE WITH TOTAL CALCULATION
-// - Dynamic cart totals (price, discount, payable amount)
-// - Book purchase/payment and previous order tracking
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:lumo/widget/cart_card.dart';
-import '../design/design_config.dart';
-import '../model/book.dart';
-import '../widget/bottom_navigation.dart';
-import '../widget/previous_order.dart';
+import 'package:lumo/presentation/widgets/cart_card.dart';
+import '../../core/config/design_config.dart';
+import '../../data/models/book.dart';
+import '../widgets/bottom_navigation.dart';
+import '../widgets/previous_order.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lumo/design/design_config.dart';
-import 'package:lumo/screen/bookmark_page.dart';
-import 'package:lumo/screen/cart_page.dart';
-import 'package:lumo/screen/discount_page.dart';
-import 'package:lumo/screen/search_page.dart';
+import 'package:lumo/core/config/design_config.dart';
+import 'package:lumo/presentation/pages/cart_page.dart';
+import 'package:lumo/presentation/pages/search_page.dart';
 
-import '../screen/account_page.dart';
-import '../screen/home_page.dart';
+import '../pages/account_page.dart';
+import '../pages/bookmark_page.dart';
+import '../pages/home_page.dart';
 
 class BottomNavigation extends StatelessWidget {
   final int currentIndex;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../design/design_config.dart';
+
+import '../../core/config/design_config.dart';
 
 class BookCard extends StatelessWidget {
   final String title;
@@ -10,14 +11,14 @@ class BookCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const BookCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.author,
     required this.cover,
     required this.price,
     required this.onTap,
     required this.discountPrice,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

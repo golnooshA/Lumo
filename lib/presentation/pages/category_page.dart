@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:lumo/design/design_config.dart';
-import 'package:lumo/model/book.dart';
-import 'package:lumo/widget/book_card.dart';
-import 'package:lumo/widget/bottom_navigation.dart';
-import '../widget/icon_text.dart';
+import 'package:lumo/core/config/design_config.dart';
+import '../../data/models/book.dart';
+import '../widgets/book_card.dart';
+import '../widgets/bottom_navigation.dart';
+import '../widgets/icon_text.dart';
 import 'book_detail_page.dart';
 
 class CategoryPage extends StatelessWidget {

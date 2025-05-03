@@ -1,15 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore, QuerySnapshot;
 import 'package:flutter/material.dart';
-import 'package:lumo/widget/book_card.dart';
-import 'package:lumo/widget/icon_text.dart';
-
-import '../design/design_config.dart';
-import '../model/book.dart';
-import '../widget/bottom_navigation.dart';
+import '../../core/config/design_config.dart';
+import '../../data/models/book.dart';
+import '../widgets/bookmark_card.dart';
+import '../widgets/bottom_navigation.dart';
 import 'book_detail_page.dart';
 
-class NewArrivalPage extends StatelessWidget {
-  const NewArrivalPage({super.key});
+class BookmarkPage extends StatelessWidget {
+  const BookmarkPage({super.key});
 
 
   Stream<QuerySnapshot> get bookStream =>
@@ -23,7 +21,7 @@ class NewArrivalPage extends StatelessWidget {
           backgroundColor: DesignConfig.appBarBackgroundColor,
           centerTitle: true,
           title: Text(
-            'New Arrival',
+            'Bookmark',
             style: TextStyle(
               color: DesignConfig.appBarTitleColor,
               fontFamily: 'Poppins',
@@ -31,19 +29,13 @@ class NewArrivalPage extends StatelessWidget {
               fontSize: DesignConfig.appBarTitleFontSize,
             ),
           )),
-      bottomNavigationBar:  const BottomNavigation(currentIndex: 0),
+      bottomNavigationBar:  const BottomNavigation(currentIndex: 2),
       body: Container(
         margin: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children:  [
-                IconText(text: 'Filter', icon: Icons.tune, onTap: (){}),
-                SizedBox(width: 20),
-                IconText(text: 'Sort', icon: Icons.sort, onTap: (){}),
-              ],
-            ),
+
             const SizedBox(height: 16),
 
             Expanded(
@@ -58,11 +50,8 @@ class NewArrivalPage extends StatelessWidget {
                   }
 
                   final books = snap.data!.docs
-                      .map((d) => Book.fromFirestore(
-                      d.data()! as Map<String, dynamic>, d.id))
-                      .where((book) =>
-                  (book.discount == false) &&
-                      (book.discountPrice == 0))
+                      .map((d) => Book.fromFirestore(d.data()! as Map<String, dynamic>, d.id))
+                      .where((book) => book.bookmark == true)
                       .toList();
 
                   return GridView.builder(
@@ -70,16 +59,19 @@ class NewArrivalPage extends StatelessWidget {
                     gridDelegate:
                     const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 0.5,
+                      childAspectRatio: 0.7,
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 20,
                     ),
-                    itemBuilder: (_, i) => BookCard(
-                      title: books[i].title,
-                      author: books[i].author,
+                    itemBuilder: (_, i) => BookmarkCard(
                       cover: books[i].coverUrl,
-                      price: books[i].price.toStringAsFixed(2),
-                      discountPrice: '',
+                      bookmark: Icons.bookmark,
+                      bookmarkTap: () async {
+                        await FirebaseFirestore.instance
+                            .collection('books')
+                            .doc(books[i].id)
+                            .update({'bookmark': false});
+                      },
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(

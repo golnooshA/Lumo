@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-
-import 'auth/auth_provider.dart';
-import 'screen/login_page.dart';
-import 'screen/register_page.dart';
-import 'screen/home_page.dart';
+import 'package:lumo/presentation/pages/home_page.dart';
+import 'package:lumo/presentation/pages/login_page.dart';
+import 'package:lumo/presentation/pages/register_page.dart';
+import 'core/config/firebase_options.dart';
+import 'presentation/providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lumo/design/design_config.dart';
+import 'package:lumo/core/config/design_config.dart';
 
 class RoundButton extends StatelessWidget {
   final String buttonText;

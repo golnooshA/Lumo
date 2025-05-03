@@ -1,55 +1,52 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-import '../auth/auth_provider.dart';
+import '../providers/auth_provider.dart';
 
-class RegisterPage extends ConsumerStatefulWidget {
-  const RegisterPage({super.key});
+
+class LoginPage extends ConsumerStatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  ConsumerState<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _RegisterPageState extends ConsumerState<RegisterPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
 
   bool isLoading = false;
+
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  Future<void> register() async {
+
+  Future<void> login() async {
     setState(() => isLoading = true);
     try {
       await ref
           .read(authRepoProvider)
-          .register(
+          .signIn(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
       Navigator.pushReplacementNamed(context, '/home');
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Registration failed')),
+        SnackBar(content: Text(e.message ?? 'Login failed')),
       );
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
   }
 
-  Future<void> registerWithGoogle() async {
+  Future<void> loginWithGoogle() async {
     setState(() => isLoading = true);
     try {
       await ref.read(authRepoProvider).signInWithGoogle();
       Navigator.pushReplacementNamed(context, '/home');
-    } on FirebaseAuthException catch (e) {
-      // FirebaseAuthException covers credential errors too
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Google registration failed')),
-      );
     } catch (e) {
-      // Fallback for any other errors (e.g. user canceled)
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google registration failed: $e')),
+        SnackBar(content: Text('Google sign-in failed: $e')),
       );
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -60,7 +57,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Register'),
+        title: Text('Login'),
         centerTitle: true,
       ),
       body: Padding(
@@ -91,30 +88,27 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
             const SizedBox(height: 24),
             if (isLoading)
-              const Center(child: CircularProgressIndicator())
-            else ...[
+              const CircularProgressIndicator()
+            else
               ElevatedButton(
-                onPressed: register,
-                child: const Text('Register'),
+                onPressed: login,
+                child: const Text('Login'),
               ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                icon: Image.asset('assets/icon/google_icon.png', height: 24),
-                label: const Text('Continue with Google'),
-                onPressed: registerWithGoogle,
-              ),
-            ],
-
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              icon: Image.asset('assets/icon/google_icon.png', height: 24),
+              label: const Text('Continue with Google'),
+              onPressed: loginWithGoogle,
+            ),
             const Spacer(),
-
-            // Navigation to Login
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text("Already have an account?"),
+                const Text("Don't have an account?"),
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Login'),
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/register'),
+                  child: const Text('Register'),
                 ),
               ],
             ),

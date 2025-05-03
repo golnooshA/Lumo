@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lumo/widget/book_cover_card.dart';
-import '../model/book.dart';
+import '../../data/models/book.dart';
+import 'book_cover_card.dart';
 
 class HorizontalBookList extends StatelessWidget {
   final List<Book> books;

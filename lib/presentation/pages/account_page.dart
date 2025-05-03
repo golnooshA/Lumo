@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore, QuerySnapshot;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lumo/screen/login_page.dart';
-import '../design/design_config.dart';
-import '../widget/bottom_navigation.dart';
-import '../widget/user_avatar_picker.dart';
+import '../../core/config/design_config.dart';
+import '../widgets/bottom_navigation.dart';
+import '../widgets/user_avatar_picker.dart';
+import 'login_page.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});

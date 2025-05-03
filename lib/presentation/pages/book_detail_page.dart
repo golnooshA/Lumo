@@ -1,14 +1,15 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:lumo/screen/details_page.dart';
-import 'package:lumo/widget/add_to_cart_button.dart';
-import '../design/design_config.dart';
-import '../model/book.dart';
-import '../widget/bottom_navigation.dart';
-import '../widget/details_row.dart';
+import 'package:lumo/presentation/widgets/add_to_cart_button.dart';
+import '../../core/config/design_config.dart';
+import '../../data/models/book.dart';
+import '../widgets/bottom_navigation.dart';
+import '../widgets/details_row.dart';
 import 'description_page.dart';
 import 'package:share_plus/share_plus.dart';
+
+import 'details_page.dart';
 
 class BookDetailPage extends StatefulWidget {
   final Book book;

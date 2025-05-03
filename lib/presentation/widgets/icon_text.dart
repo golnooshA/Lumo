@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../design/design_config.dart';
+import '../../core/config/design_config.dart';
 
 class IconText extends StatelessWidget{
 

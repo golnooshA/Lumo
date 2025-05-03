@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../design/design_config.dart';
-import '../widget/bottom_navigation.dart';
-import '../component/round_button.dart';
-import '../model/book.dart';
-import '../widget/book_cover_card.dart';
+import '../../core/config/design_config.dart';
+import '../../data/models/book.dart';
+import '../widgets/book_cover_card.dart';
+import '../widgets/bottom_navigation.dart';
+import '../widgets/round_button.dart';
 import 'book_detail_page.dart';
 import 'category_page.dart';
 

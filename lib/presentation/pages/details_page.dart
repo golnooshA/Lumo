@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../design/design_config.dart';
-import '../model/book.dart';
-import '../widget/bottom_navigation.dart';
-import '../widget/details_row.dart';
+import '../../core/config/design_config.dart';
+import '../../data/models/book.dart';
+import '../widgets/bottom_navigation.dart';
+import '../widgets/details_row.dart';
 
 class DetailsPage extends StatelessWidget {
   final Book book;

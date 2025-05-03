@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:lumo/design/design_config.dart';
-import 'package:lumo/screen/discount_page.dart';
-import 'package:lumo/screen/new_arrival_page.dart';
-import 'package:lumo/widget/banner_card.dart';
-import 'package:lumo/widget/horizontal_book_list.dart';
-import 'package:lumo/widget/section_header.dart';
-import '../model/book.dart';
-import '../widget/bottom_navigation.dart';
+import 'package:lumo/core/config/design_config.dart';
+import '../../data/models/book.dart';
+import '../widgets/banner_card.dart';
+import '../widgets/bottom_navigation.dart';
+import '../widgets/horizontal_book_list.dart';
+import '../widgets/section_header.dart';
 import 'book_detail_page.dart';
+import 'discount_page.dart';
+import 'new_arrival_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
