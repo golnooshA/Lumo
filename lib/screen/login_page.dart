@@ -1,23 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../auth/auth_provider.dart';
 
-class LoginPage extends StatefulWidget {
+
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  bool isLogin = true; // To toggle between login/register
+class _LoginPageState extends ConsumerState<LoginPage> {
+
+  bool isLoading = false;
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+
+  Future<void> login() async {
+    setState(() => isLoading = true);
+    try {
+      await ref
+          .read(authRepoProvider)
+          .signIn(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+      Navigator.pushReplacementNamed(context, '/home');
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Login failed')),
+      );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> loginWithGoogle() async {
+    setState(() => isLoading = true);
+    try {
+      await ref.read(authRepoProvider).signInWithGoogle();
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google sign-in failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isLogin ? 'Login' : 'Register'),
+        title: Text('Login'),
         centerTitle: true,
       ),
       body: Padding(
@@ -46,70 +85,29 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(height: 12),
 
-            // Forgot Password
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Forgot password logic here
-                },
-                child: const Text('Forgot Password?'),
+            const SizedBox(height: 24),
+            if (isLoading)
+              const CircularProgressIndicator()
+            else
+              ElevatedButton(
+                onPressed: login,
+                child: const Text('Login'),
               ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Login/Register Button
-            ElevatedButton(
-              onPressed: () {
-                // Handle login/register logic
-              },
-              child: Text(isLogin ? 'Login' : 'Register'),
-            ),
             const SizedBox(height: 24),
-
-            // Divider
-            Row(
-              children: const [
-                Expanded(child: Divider(thickness: 1)),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: Text('OR'),
-                ),
-                Expanded(child: Divider(thickness: 1)),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Google Button
             OutlinedButton.icon(
               icon: Image.asset('assets/icon/google_icon.png', height: 24),
               label: const Text('Continue with Google'),
-              onPressed: () {},
+              onPressed: loginWithGoogle,
             ),
-            const SizedBox(height: 12),
-
-            // Facebook Button
-            OutlinedButton.icon(
-              icon: Image.asset('assets/icon/facebook_icon.png', height: 24),
-              label: const Text('Continue with Facebook'),
-              onPressed: () {},
-            ),
-
-            const SizedBox(height: 12),
-
-            // Switch between login/register
+            const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(isLogin ? "Don't have an account?" : "Already have an account?"),
+                const Text("Don't have an account?"),
                 TextButton(
-                  onPressed: () {
-                    setState(() {
-                      isLogin = !isLogin;
-                    });
-                  },
-                  child: Text(isLogin ? 'Register' : 'Login'),
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/register'),
+                  child: const Text('Register'),
                 ),
               ],
             ),

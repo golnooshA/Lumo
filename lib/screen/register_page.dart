@@ -1,23 +1,66 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class RegisterPage extends StatefulWidget {
+import '../auth/auth_provider.dart';
+
+class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
-  bool isLogin = true; // To toggle between login/register
+class _RegisterPageState extends ConsumerState<RegisterPage> {
 
+  bool isLoading = false;
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  Future<void> register() async {
+    setState(() => isLoading = true);
+    try {
+      await ref
+          .read(authRepoProvider)
+          .register(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+      Navigator.pushReplacementNamed(context, '/home');
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Registration failed')),
+      );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> registerWithGoogle() async {
+    setState(() => isLoading = true);
+    try {
+      await ref.read(authRepoProvider).signInWithGoogle();
+      Navigator.pushReplacementNamed(context, '/home');
+    } on FirebaseAuthException catch (e) {
+      // FirebaseAuthException covers credential errors too
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Google registration failed')),
+      );
+    } catch (e) {
+      // Fallback for any other errors (e.g. user canceled)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google registration failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isLogin ? 'Login' : 'Register'),
+        title: Text('Register'),
         centerTitle: true,
       ),
       body: Padding(
@@ -46,70 +89,32 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 12),
 
-            // Forgot Password
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Forgot password logic here
-                },
-                child: const Text('Forgot Password?'),
+            const SizedBox(height: 24),
+            if (isLoading)
+              const Center(child: CircularProgressIndicator())
+            else ...[
+              ElevatedButton(
+                onPressed: register,
+                child: const Text('Register'),
               ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Login/Register Button
-            ElevatedButton(
-              onPressed: () {
-                // Handle login/register logic
-              },
-              child: Text(isLogin ? 'Login' : 'Register'),
-            ),
-            const SizedBox(height: 24),
-
-            // Divider
-            Row(
-              children: const [
-                Expanded(child: Divider(thickness: 1)),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: Text('OR'),
-                ),
-                Expanded(child: Divider(thickness: 1)),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Google Button
-            OutlinedButton.icon(
-              icon: Image.asset('assets/icon/google_icon.png', height: 24),
-              label: const Text('Continue with Google'),
-              onPressed: () {},
-            ),
-            const SizedBox(height: 12),
-
-            // Facebook Button
-            OutlinedButton.icon(
-              icon: Image.asset('assets/icon/facebook_icon.png', height: 24),
-              label: const Text('Continue with Facebook'),
-              onPressed: () {},
-            ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                icon: Image.asset('assets/icon/google_icon.png', height: 24),
+                label: const Text('Continue with Google'),
+                onPressed: registerWithGoogle,
+              ),
+            ],
 
             const Spacer(),
 
-            // Switch between login/register
+            // Navigation to Login
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(isLogin ? "Don't have an account?" : "Already have an account?"),
+                const Text("Already have an account?"),
                 TextButton(
-                  onPressed: () {
-                    setState(() {
-                      isLogin = !isLogin;
-                    });
-                  },
-                  child: Text(isLogin ? 'Register' : 'Login'),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Login'),
                 ),
               ],
             ),
