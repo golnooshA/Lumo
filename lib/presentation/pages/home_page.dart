@@ -1,73 +1,51 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:lumo/core/config/design_config.dart';
-import '../../data/models/book.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/config/design_config.dart';
+import '../providers/book_provider.dart';
 import '../widgets/banner_card.dart';
-import '../widgets/bottom_navigation.dart';
 import '../widgets/horizontal_book_list.dart';
 import '../widgets/section_header.dart';
+import '../widgets/bottom_navigation.dart';
 import 'book_detail_page.dart';
 import 'discount_page.dart';
 import 'new_arrival_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
-  List<Book> _filterBooksByCategory(List<Book> books, String categoryName) {
-    final q = categoryName.toLowerCase();
-    return books
-        .where((book) => book.categories.any((c) => c.toLowerCase() == q))
-        .toList();
-  }
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: DesignConfig.appBarBackgroundColor,
-        title: Text(
-          'Lumo',
-          style: TextStyle(
-            color: DesignConfig.appBarTitleColor,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final allBooksAsync = ref.watch(allBooksProvider);
+
+    return allBooksAsync.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       ),
-      bottomNavigationBar: const BottomNavigation(currentIndex: 0),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('books').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No books available'));
-          }
+      error: (e, st) => Scaffold(
+        body: Center(child: Text('Error loading books: $e')),
+      ),
+      data: (books) {
+        final newArrivals = ref.read(newArrivalsProvider).value ?? [];
+        final discounted  = ref.read(discountedProvider).value  ?? [];
 
-          final books = snapshot.data!.docs
-              .map(
-                (d) =>
-                    Book.fromFirestore(d.data()! as Map<String, dynamic>, d.id),
-              )
-              .toList(growable: false);
-
-          final newArrivals = books
-              .where((b) =>
-          (b.discount == false) &&
-              (b.discountPrice == 0))
-              .toList();
-
-          final discounted = books
-              .where((b) => b.discount == true)
-              .toList(growable: false);
-
-          return ListView(
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: DesignConfig.appBarBackgroundColor,
+            title: Text(
+              'Lumo',
+              style: TextStyle(
+                color: DesignConfig.appBarTitleColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          bottomNavigationBar: const BottomNavigation(currentIndex: 0),
+          body: ListView(
             children: [
-              // ── banner carousel ──
+              // Banner carousel…
               Container(
                 height: 200,
-                width: double.infinity,
                 color: DesignConfig.light_light_blue,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
@@ -80,49 +58,39 @@ class HomePage extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // ── new arrivals ──
               SectionHeader(
                 title: 'New Arrival',
-                onTap:
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => NewArrivalPage()),
-                    ),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) =>  NewArrivalPage()),
+                ),
               ),
               HorizontalBookList(
                 books: newArrivals.take(4).toList(),
-                onTap:
-                    (b) => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BookDetailPage(book: b),
-                      ),
-                    ),
+                onTap: (b) => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => BookDetailPage(book: b)),
+                ),
               ),
 
-              // ── discount ──
               SectionHeader(
                 title: 'Discount',
-                onTap:
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => DiscountPage()),
-                    ),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) =>  DiscountPage()),
+                ),
               ),
               HorizontalBookList(
                 books: discounted.take(4).toList(),
-                onTap:
-                    (b) => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BookDetailPage(book: b),
-                      ),
-                    ),
+                onTap: (b) => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => BookDetailPage(book: b)),
+                ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

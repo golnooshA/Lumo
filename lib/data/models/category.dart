@@ -1,19 +1,17 @@
+// lib/data/models/category.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Category {
   final String name;
-  final String? parentId;   // nullable if you don’t use nesting
+  final String? parentId;
 
-  Category({
-    required this.name,
-    this.parentId,
-  });
+  Category({ required this.name, this.parentId });
 
-  factory Category.fromFirestore(
-      Map<String, dynamic> json, String id) {
+  factory Category.fromFirestore(Map<String, dynamic> json, String id) {
     return Category(
-      name: json['name'] ?? '',
-      parentId: json['parentId'],
+      name: json['name']?.toString() ?? '',
+      parentId: json['parentId']?.toString(),
     );
   }
 }

@@ -1,105 +1,74 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore, QuerySnapshot;
+// lib/presentation/pages/new_arrival_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/config/design_config.dart';
-import '../../data/models/book.dart';
+import '../providers/book_provider.dart';
 import '../widgets/book_card.dart';
 import '../widgets/bottom_navigation.dart';
-import '../widgets/icon_text.dart';
 import 'book_detail_page.dart';
 
-class NewArrivalPage extends StatelessWidget {
+class NewArrivalPage extends ConsumerWidget {
   const NewArrivalPage({super.key});
 
-
-  Stream<QuerySnapshot> get bookStream =>
-      FirebaseFirestore.instance.collection('books').snapshots();
- 
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-          backgroundColor: DesignConfig.appBarBackgroundColor,
-          centerTitle: true,
-          title: Text(
-            'New Arrival',
-            style: TextStyle(
-              color: DesignConfig.appBarTitleColor,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w500,
-              fontSize: DesignConfig.appBarTitleFontSize,
-            ),
-          )),
-      bottomNavigationBar:  const BottomNavigation(currentIndex: 0),
-      body: Container(
-        margin: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children:  [
-                IconText(text: 'Filter', icon: Icons.tune, onTap: (){}),
-                SizedBox(width: 20),
-                IconText(text: 'Sort', icon: Icons.sort, onTap: (){}),
-              ],
-            ),
-            const SizedBox(height: 16),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final arrivals = ref.watch(newArrivalsProvider);
 
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: bookStream,
-                builder: (context, snap) {
-                  if (snap.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snap.hasData || snap.data!.docs.isEmpty) {
-                    return const Center(child: Text('No books yet'));
-                  }
-
-                  final books = snap.data!.docs
-                      .map((d) => Book.fromFirestore(
-                      d.data()! as Map<String, dynamic>, d.id))
-                      .where((book) =>
-                  (book.discount == false) &&
-                      (book.discountPrice == 0))
-                      .toList();
-
-                  return GridView.builder(
-                    itemCount: books.length,
-                    gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.5,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 20,
-                    ),
-                    itemBuilder: (_, i) => BookCard(
-                      title: books[i].title,
-                      author: books[i].author,
-                      cover: books[i].coverUrl,
-                      price: books[i].price.toStringAsFixed(2),
-                      discountPrice: '',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => BookDetailPage(book: books[i]),
-                        ),
-                      ),
-                    ),
-                  );
-                },
+    return arrivals.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
+      data: (books) {
+        if (books.isEmpty) {
+          return Scaffold(
+            appBar: _buildAppBar(),
+            bottomNavigationBar: const BottomNavigation(currentIndex: 0),
+            body: const Center(child: Text('No new arrivals')),
+          );
+        }
+        return Scaffold(
+          appBar: _buildAppBar(),
+          bottomNavigationBar: const BottomNavigation(currentIndex: 0),
+          body: Padding(
+            padding: const EdgeInsets.all(20),
+            child: GridView.builder(
+              itemCount: books.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.5,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 20,
               ),
+              itemBuilder: (_, i) {
+                final b = books[i];
+                return BookCard(
+                  title: b.title,
+                  author: b.author,
+                  cover: b.coverUrl,
+                  price: b.price.toStringAsFixed(2),
+                  discountPrice: '',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => BookDetailPage(book: b)),
+                  ),
+                );
+              },
             ),
-
-          ],
-        ),
-      ),
-
+          ),
+        );
+      },
     );
   }
+
+  AppBar _buildAppBar() => AppBar(
+    backgroundColor: DesignConfig.appBarBackgroundColor,
+    centerTitle: true,
+    title: Text(
+      'New Arrival',
+      style: TextStyle(
+        color: DesignConfig.appBarTitleColor,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+  );
 }
-
-
-
-
-

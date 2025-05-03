@@ -2,125 +2,121 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/config/routes.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
-  const RegisterPage({super.key});
+  const RegisterPage({Key? key}) : super(key: key);
 
   @override
   ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends ConsumerState<RegisterPage> {
+  final _emailCtrl    = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  bool _isLoading = false;
 
-  bool isLoading = false;
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
 
-  Future<void> register() async {
-    setState(() => isLoading = true);
+  Future<void> _register() async {
+    setState(() => _isLoading = true);
     try {
-      await ref
-          .read(authRepoProvider)
-          .register(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+      await ref.read(authRepositoryProvider).register(
+        email: _emailCtrl.text.trim(),
+        password: _passwordCtrl.text.trim(),
       );
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, Routes.home);
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Registration failed')),
-      );
+      _showError(e.message ?? 'Registration failed');
     } finally {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> registerWithGoogle() async {
-    setState(() => isLoading = true);
+  Future<void> _registerWithGoogle() async {
+    setState(() => _isLoading = true);
     try {
-      await ref.read(authRepoProvider).signInWithGoogle();
-      Navigator.pushReplacementNamed(context, '/home');
-    } on FirebaseAuthException catch (e) {
-      // FirebaseAuthException covers credential errors too
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Google registration failed')),
-      );
+      await ref.read(authRepositoryProvider).signInWithGoogle();
+      Navigator.pushReplacementNamed(context, Routes.home);
     } catch (e) {
-      // Fallback for any other errors (e.g. user canceled)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google registration failed: $e')),
-      );
+      _showError('Google sign-in failed: $e');
     } finally {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Register'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Register'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Email
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email),
-              ),
-            ),
+            _buildField(label: 'Email', icon: Icons.email, controller: _emailCtrl),
             const SizedBox(height: 16),
-
-            // Password
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                prefixIcon: Icon(Icons.lock),
-              ),
-            ),
-            const SizedBox(height: 12),
-
+            _buildField(label: 'Password', icon: Icons.lock, controller: _passwordCtrl, obscureText: true),
             const SizedBox(height: 24),
-            if (isLoading)
+
+            if (_isLoading)
               const Center(child: CircularProgressIndicator())
             else ...[
-              ElevatedButton(
-                onPressed: register,
-                child: const Text('Register'),
-              ),
+              ElevatedButton(onPressed: _register, child: const Text('Register')),
               const SizedBox(height: 16),
               OutlinedButton.icon(
                 icon: Image.asset('assets/icon/google_icon.png', height: 24),
                 label: const Text('Continue with Google'),
-                onPressed: registerWithGoogle,
+                onPressed: _registerWithGoogle,
               ),
             ],
 
             const Spacer(),
-
-            // Navigation to Login
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Already have an account?"),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Login'),
-                ),
-              ],
-            ),
+            _buildFooter(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildField({
+    required String label,
+    required IconData icon,
+    required TextEditingController controller,
+    bool obscureText = false,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text('Already have an account? '),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Login'),
+        ),
+      ],
     );
   }
 }

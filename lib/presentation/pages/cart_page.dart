@@ -1,20 +1,22 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:lumo/presentation/widgets/cart_card.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/config/design_config.dart';
-import '../../data/models/book.dart';
+import '../providers/book_provider.dart';
 import '../widgets/bottom_navigation.dart';
+import '../widgets/cart_card.dart';
 import '../widgets/previous_order.dart';
 
-class CartPage extends StatefulWidget {
-  const CartPage({super.key});
+class CartPage extends ConsumerStatefulWidget {
+  const CartPage({Key? key}) : super(key: key);
 
   @override
-  State<CartPage> createState() => _CartPageState();
+  ConsumerState<CartPage> createState() => _CartPageState();
 }
 
-class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _CartPageState extends ConsumerState<CartPage>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
 
   @override
   void initState() {
@@ -30,55 +32,42 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+    final cartAsync      = ref.watch(cartBooksProvider);
+    final purchasedAsync = ref.watch(purchasedBooksProvider);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: DesignConfig.appBarBackgroundColor,
         centerTitle: true,
-        title: Text(
-          'Cart',
-          style: TextStyle(
-            color: DesignConfig.appBarTitleColor,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w500,
-            fontSize: DesignConfig.appBarTitleFontSize,
-          ),
-        ),
+        title: const Text('Cart'),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.red,
-          labelColor: Colors.red,
+          indicatorColor: DesignConfig.addCart,
+          labelColor: DesignConfig.addCart,
           unselectedLabelColor: Colors.grey,
           tabs: [
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('books')
-                  .where('cart', isEqualTo: true)
-                  .snapshots(),
-              builder: (context, snap) {
-                int count = snap.data?.docs.length ?? 0;
-                return Tab(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Cart'),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '$count',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
-                        ),
+            cartAsync.when(
+              data: (list) => Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Cart'),
+                    const SizedBox(width: 6),
+                    CircleAvatar(
+                      radius: 10,
+                      backgroundColor: Colors.red,
+                      child: Text(
+                        '${list.length}',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
                       ),
-                    ],
-                  ),
-                );
-              },
+                    ),
+                  ],
+                ),
+              ),
+              loading: ()    => const Tab(text: 'Cart'),
+              error:   (_,__)=> const Tab(text: 'Cart'),
             ),
-            const Tab(text: 'Previous Orders'),
+            const Tab(text: 'Previous'),
           ],
         ),
       ),
@@ -86,19 +75,19 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
       body: TabBarView(
         controller: _tabController,
         children: [
-          // 🛒 CART TAB
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('books').where('cart', isEqualTo: true).snapshots(),
-            builder: (context, snap) {
-              if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-
-              final books = snap.data!.docs.map((d) => Book.fromFirestore(d.data()! as Map<String, dynamic>, d.id)).toList();
-
-              if (books.isEmpty) return const Center(child: Text('No items in cart'));
-
-              double totalPrice = books.fold(0.0, (sum, b) => sum + b.price);
-              double totalDiscount = books.fold(0.0, (sum, b) => sum + (b.discountPrice > 0 ? (b.price - b.discountPrice) : 0));
-              double payable = totalPrice - totalDiscount;
+          // 🛒 In‐Cart Items
+          cartAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error:   (e,_) => Center(child: Text('Error: $e')),
+            data:    (books) {
+              if (books.isEmpty) {
+                return const Center(child: Text('No items in cart'));
+              }
+              final total    = books.fold<double>(0, (sum, b) => sum + b.price);
+              final discount = books.fold<double>(0, (sum, b) =>
+              sum + (b.discountPrice > 0 ? (b.price - b.discountPrice) : 0)
+              );
+              final payable  = total - discount;
 
               return Column(
                 children: [
@@ -106,115 +95,50 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                     child: ListView.builder(
                       padding: const EdgeInsets.all(20),
                       itemCount: books.length,
-                      itemBuilder: (_, i) => CartCard(
-                        title: books[i].title,
-                        author: books[i].author,
-                        discountPrice: books[i].discountPrice,
-                        price: books[i].price.toString(),
-                        cover: books[i].coverUrl,
-                        onTap: () {},
-                        deleteTap: () async {
-                          await FirebaseFirestore.instance
-                              .collection('books')
-                              .doc(books[i].id)
-                              .update({'cart': false});
-                        },
-                      ),
+                      itemBuilder: (_, i) {
+                        final b = books[i];
+                        return CartCard(
+                          title: b.title,
+                          author: b.author,
+                          price: b.price.toStringAsFixed(2),
+                          discountPrice: b.discountPrice,
+                          cover: b.coverUrl,
+                          deleteTap: () =>
+                              ref.read(bookRepoProvider).toggleCart(b.id, false),
+                          onTap: () {}, // navigate or inspect
+                        );
+                      },
                     ),
                   ),
                   const Divider(),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    color: Colors.grey[100],
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Apply Discount Code'),
-                            TextButton(onPressed: () {}, child: const Text('Submit')),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Total Items (${books.length})', style: const TextStyle(color: Colors.grey)),
-                            Text('€${totalPrice.toStringAsFixed(2)}'),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Discount', style: TextStyle(color: Colors.grey)),
-                            Text('-€${totalDiscount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red)),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Payable Amount', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text('€${payable.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                            onPressed: () async {
-                              final cartBooks = await FirebaseFirestore.instance
-                                  .collection('books')
-                                  .where('cart', isEqualTo: true)
-                                  .get();
-
-                              for (var doc in cartBooks.docs) {
-                                await doc.reference.update({'cart': false, 'purchased': true});
-                              }
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Payment successful. Books moved to previous orders.')),
-                              );
-                            },
-                            child: const Text('Continue to Payment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildSummary(total, discount, payable),
                 ],
               );
             },
           ),
 
-          // 📦 PREVIOUS ORDERS TAB
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('books').where('purchased', isEqualTo: true).snapshots(),
-            builder: (context, snap) {
-              if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-
-              final books = snap.data!.docs.map((d) => Book.fromFirestore(d.data()! as Map<String, dynamic>, d.id)).toList();
-
-              if (books.isEmpty) return const Center(child: Text('No previous orders'));
-
+          // 📦 Previous Orders
+          purchasedAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error:   (e,_) => Center(child: Text('Error: $e')),
+            data:    (books) {
+              if (books.isEmpty) {
+                return const Center(child: Text('No previous orders'));
+              }
               return ListView.builder(
                 padding: const EdgeInsets.all(20),
                 itemCount: books.length,
-                itemBuilder: (_, i) => PreviousOrder(
-                  title: books[i].title,
-                  author: books[i].author,
-                  discountPrice: books[i].discountPrice,
-                  price: books[i].price.toString(),
-                  cover: books[i].coverUrl,
-                  onTap: () {},
-                ),
+                itemBuilder: (_, i) {
+                  final b = books[i];
+                  return PreviousOrder(
+                    title: b.title,
+                    author: b.author,
+                    price: b.price.toStringAsFixed(2),
+                    discountPrice: b.discountPrice,
+                    cover: b.coverUrl,
+                    onTap: () {},
+                  );
+                },
               );
             },
           ),
@@ -222,4 +146,55 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
       ),
     );
   }
-} // END
+
+  Widget _buildSummary(double total, double discount, double payable) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.grey[100],
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Total', style: const TextStyle(color: Colors.grey)),
+              Text('${total.toStringAsFixed(2)} €'),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Discount', style: TextStyle(color: Colors.red)),
+              Text('-${discount.toStringAsFixed(2)} €'),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Payable', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('${payable.toStringAsFixed(2)} €',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => ref.read(bookRepoProvider).purchaseAllCart(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Checkout',
+                  style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,106 +1,75 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:lumo/core/config/design_config.dart';
-import '../../data/models/book.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/config/design_config.dart';
+import '../providers/book_provider.dart';
 import '../widgets/book_card.dart';
 import '../widgets/bottom_navigation.dart';
-import '../widgets/icon_text.dart';
 import 'book_detail_page.dart';
 
-class CategoryPage extends StatelessWidget {
+class CategoryPage extends ConsumerWidget {
   final String category;
-  const CategoryPage({super.key, required this.category});
+  const CategoryPage({Key? key, required this.category}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final booksAsync = ref.watch(categoryBooksProvider(category));
 
-    final bookStream = FirebaseFirestore.instance
-        .collection('books')
-        .where('category',arrayContains: category.trim())
-        .snapshots();
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: DesignConfig.appBarBackgroundColor,
-        centerTitle: true,
-        title: Text(
-          category,
-          style: TextStyle(
-            color: DesignConfig.appBarTitleColor,
-            fontWeight: FontWeight.w600,
+    return booksAsync.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
+      data: (books) {
+        if (books.isEmpty) {
+          return Scaffold(
+            appBar: _buildAppBar(),
+            bottomNavigationBar: const BottomNavigation(currentIndex: 1),
+            body: const Center(child: Text('No books in this category')),
+          );
+        }
+        return Scaffold(
+          appBar: _buildAppBar(),
+          bottomNavigationBar: const BottomNavigation(currentIndex: 1),
+          body: Padding(
+            padding: const EdgeInsets.all(20),
+            child: GridView.builder(
+              itemCount: books.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.5,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 20,
+              ),
+              itemBuilder: (_, i) {
+                final b = books[i];
+                return BookCard(
+                  title: b.title,
+                  author: b.author,
+                  cover: b.coverUrl,
+                  price: b.price.toStringAsFixed(2),
+                  discountPrice:
+                  b.discountPrice > 0 ? b.discountPrice.toStringAsFixed(2) : '',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => BookDetailPage(book: b)),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-      ),
-      bottomNavigationBar: const BottomNavigation(currentIndex: 1),
-      body: Container(
-        margin: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Filter and Sort Row
-            Row(
-              children: [
-                IconText(text: 'Filter', icon: Icons.tune, onTap: () {}),
-                SizedBox(width: 20),
-                IconText(text: 'Sort', icon: Icons.sort, onTap: () {}),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Book Grid
-            Expanded(
-              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: bookStream,
-                builder: (context, snap) {
-                  if (snap.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snap.hasData || snap.data!.docs.isEmpty) {
-                    return const Center(child: Text('No books yet'));
-                  }
-
-                  final books = snap.data!.docs
-                      .map((d) => Book.fromFirestore(d.data(), d.id))
-                      .toList(growable: false)
-                    ..sort((a, b) => a.title.compareTo(b.title));
-
-                  return GridView.builder(
-                    itemCount: books.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.5,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 20,
-                    ),
-                    itemBuilder: (_, i) {
-                      final b = books[i];
-                      final dp = b.discountPrice;
-
-                      return BookCard(
-                        title: b.title,
-                        author: b.author,
-                        cover: b.coverUrl,
-                        price: b.price.toStringAsFixed(2),
-                        discountPrice: dp == 0 ? '' : dp.toStringAsFixed(2),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BookDetailPage(book: b),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              )
-            ),
-          ],
-        ),
-      ),
-
-
-
-
+        );
+      },
     );
   }
+
+  AppBar _buildAppBar() => AppBar(
+    backgroundColor: DesignConfig.appBarBackgroundColor,
+    centerTitle: true,
+    title: Text(
+      category,
+      style: TextStyle(
+        color: DesignConfig.appBarTitleColor,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
 }
